@@ -52,7 +52,7 @@ SCORE_RULES = [
     (r'\bmedical\b|\bclinical\b|\bhealthcare\b',        1, False),
 ]
 
-# Domain-specific rules for a senior DS at a credit bureau (Experian Italy)
+# Domain-specific rules
 DOMAIN_RULES = [
     # Credit & risk — core business
     (r'\bcredit\b|\bcredit.risk\b|\bcredit.scor',       4, False),
@@ -133,7 +133,7 @@ NS = {'a': 'http://www.w3.org/2005/Atom'}
 def fetch_xml():
     query = '+OR+'.join(f'cat:{c}' for c in CATEGORIES)
     url = (
-        'http://export.arxiv.org/api/query?'
+        'https://export.arxiv.org/api/query?'
         f'search_query={query}'
         f'&sortBy=submittedDate&sortOrder=descending'
         f'&max_results={MAX_FETCH}'
@@ -315,6 +315,10 @@ footer{text-align:center;padding:24px 16px;color:#484f58;
 def esc(s):
     return s.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace('"','&quot;')
 
+def safe_url(url):
+    """Only allow http/https URLs to prevent javascript: injection in href attributes."""
+    return url if url.startswith(('https://', 'http://')) else '#'
+
 def _trunc(s, n=240):
     return s[:n].rsplit(' ', 1)[0] + '…' if len(s) > n else s
 
@@ -348,14 +352,14 @@ def render(papers, date):
   <div class="paper">
     <div class="rank">#{i}</div>
     <div class="body">
-      <h2><a href="{esc(p['url'])}" target="_blank" rel="noopener">{esc(p['title'])}</a></h2>
+      <h2><a href="{esc(safe_url(p['url']))}" target="_blank" rel="noopener">{esc(p['title'])}</a></h2>
       <div class="pmeta">{authors}<br><span class="cats">{cats}</span></div>
       <div class="gist">{gist_rows}</div>
       <details class="absbox">
         <summary>Full abstract</summary>
         <p class="abs">{full_abs}</p>
       </details>
-      <a class="link" href="{esc(p['url'])}" target="_blank" rel="noopener">arXiv &rarr;</a>
+      <a class="link" href="{esc(safe_url(p['url']))}" target="_blank" rel="noopener">arXiv &rarr;</a>
     </div>
   </div>'''
 
